@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>博士岗位雷达看板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap"
+    />
+    <link rel="stylesheet" href="hark.css" />
+    <link rel="stylesheet" href="hark-hero.css" />
+    <style>
+      :root {
+        --x-red: #d32f2f;
+        --x-red-text: #ff6b66;
+        --x-red-soft: rgb(229 57 53 / 0.16);
+        --x-amber: #f5a623;
+        --x-green: #3ecf8e;
+        --x-bg: #0d0d0f;
+        --x-card: #1a1a1d;
+        --x-card-2: #232327;
+      }
+      html, body { background: var(--x-bg); }
+      body { color: var(--text-primary); }
+      .x-top {
+        position: sticky; top: 0; z-index: 20;
+        background: color-mix(in srgb, var(--x-bg) 88%, transparent);
+        backdrop-filter: var(--hark-blur); -webkit-backdrop-filter: var(--hark-blur);
+        border-bottom: 1px solid var(--stroke-secondary);
+        padding: 0;
+      }
+      .x-top__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; max-width: var(--page-max); margin: 0 auto; }
+      .x-brand { font: var(--type-heading); margin: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .x-brand b { color: var(--x-red-text); font-weight: var(--weight-bold); }
+      .x-updated { font: var(--type-caption); color: var(--text-secondary); }
+      .x-seg { display: inline-flex; border: 1px solid var(--stroke-primary); border-radius: var(--r-pill); padding: 2px; }
+      .x-seg button {
+        min-height: var(--tap); min-width: var(--tap); padding: 0 14px; border: 0; border-radius: var(--r-pill);
+        background: transparent; color: var(--text-secondary); font: var(--type-label); cursor: pointer;
+      }
+      .x-seg button[aria-pressed="true"] { background: var(--x-red); color: #fff; }
+      .x-tabs { display: flex; gap: 4px; overflow-x: auto; max-width: var(--page-max); margin: 10px auto 0; scrollbar-width: none; }
+      .x-tabs a {
+        flex: none; display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 14px;
+        font: var(--type-label); color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent;
+      }
+      .x-tabs a[aria-current="page"] { color: var(--text-primary); border-bottom-color: var(--x-red); }
+      .x-wrap { padding: 8px 0 24px; display: grid; gap: 20px; min-width: 0; }
+      .x-h2 { font: var(--type-heading); margin: 8px 0 0; }
+      .x-sub { font: var(--type-small); color: var(--text-secondary); margin: 4px 0 0; }
+      .x-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+      .x-kpi { background: var(--x-card); border: 1px solid var(--stroke-secondary); border-radius: var(--r-m); padding: 14px 16px; display: grid; gap: 4px; }
+      .x-kpi__fig { font: var(--type-figure); font-variant-numeric: tabular-nums; }
+      .x-kpi__fig.is-red { color: var(--x-red); }
+      .x-kpi__label { font: var(--type-caption); color: var(--text-secondary); }
+      .x-card { background: var(--x-card); border: 1px solid var(--stroke-secondary); border-radius: var(--r-m); padding: 16px; min-width: 0; }
+      .x-card h3 { font: var(--type-body-strong); margin: 6px 0 0; }
+      .x-card.is-accent { border-color: var(--x-red); background: linear-gradient(var(--x-red-soft), transparent 70%), var(--x-card); }
+      .x-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+      .x-list { display: grid; gap: 10px; }
+      .x-school { display: grid; gap: 2px; }
+      .x-school__zh { font: var(--type-body-strong); }
+      .x-school__en { font: var(--type-caption); color: var(--text-secondary); }
+      .x-meta { font: var(--type-caption); color: var(--text-secondary); }
+      .x-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .x-badge {
+        display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-pill);
+        font: var(--type-tag); border: 1px solid currentColor; white-space: nowrap;
+      }
+      .x-badge--ok { color: var(--x-green); }
+      .x-badge--warn { color: var(--x-amber); }
+      .x-badge--red { color: #fff; background: var(--x-red); border-color: var(--x-red); }
+      .x-badge--redline { color: #ff6b66; }
+      .x-badge--muted { color: var(--text-secondary); }
+      .x-badge--star { color: var(--x-amber); border-color: transparent; padding-inline: 0; }
+      .x-row-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+      .x-title { font: var(--type-body-strong); margin: 10px 0 2px; }
+      .x-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 16px; margin: 12px 0 0; }
+      .x-kv > div { min-width: 0; }
+      .x-kv dt { font: var(--type-caption); color: var(--text-secondary); margin: 0 0 2px; }
+      .x-kv dd { font: var(--type-small); margin: 0; overflow-wrap: anywhere; }
+      .x-dl { margin: 0; display: grid; gap: 4px; }
+      .x-dl > div { display: grid; grid-template-columns: minmax(90px, max-content) minmax(0, 1fr); gap: 8px; }
+      .x-dl dt { font: var(--type-caption); color: var(--text-secondary); margin: 0; overflow-wrap: anywhere; }
+      .x-dl dd { margin: 0; font: var(--type-small); overflow-wrap: anywhere; }
+      .x-ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font: var(--type-small); }
+      .x-scores { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; margin-top: 12px; font: var(--type-caption); color: var(--text-secondary); }
+      .x-scores b { color: var(--text-primary); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; }
+      .x-bar { height: 6px; border-radius: var(--r-pill); background: var(--x-card-2); overflow: hidden; min-width: 60px; }
+      .x-bar i { display: block; height: 100%; background: var(--x-red); border-radius: inherit; }
+      .x-bar.is-dim i { background: var(--text-secondary); }
+      .x-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font: var(--type-small); }
+      .x-links a, .x-a { color: var(--text-primary); text-decoration: underline; text-decoration-color: var(--x-red); text-underline-offset: 3px; overflow-wrap: anywhere; }
+      .x-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .x-controls label { font: var(--type-caption); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
+      .x-select, .x-input {
+        min-height: var(--tap); padding: 0 12px; border-radius: var(--r-s); border: 1px solid var(--stroke-primary);
+        background: var(--x-card); color: var(--text-primary); font: var(--type-small);
+      }
+      .x-input { min-width: 0; flex: 1 1 220px; }
+      .x-chipbtn {
+        min-height: 36px; padding: 0 12px; border-radius: var(--r-pill); border: 1px solid var(--stroke-primary);
+        background: transparent; color: var(--text-secondary); font: var(--type-tag); cursor: pointer; position: relative;
+      }
+      .x-chipbtn::after { content: ""; position: absolute; inset: -4px 0; }
+      .x-chipbtn[aria-pressed="true"] { background: var(--x-red); border-color: var(--x-red); color: #fff; }
+      .x-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: var(--tap); font: var(--type-small); color: var(--text-primary); cursor: pointer; }
+      .x-toggle input { accent-color: var(--x-red); width: 18px; height: 18px; }
+      input[type="range"] { accent-color: var(--x-red); }
+      .x-count { font: var(--type-caption); color: var(--text-secondary); }
+      details.x-more { margin-top: 10px; }
+      details.x-more > summary { cursor: pointer; font: var(--type-caption); color: var(--text-secondary); min-height: 32px; display: flex; align-items: center; }
+      details.x-more > summary:hover { color: var(--text-primary); }
+      .x-more__body { font: var(--type-small); color: var(--text-primary); display: grid; gap: 8px; padding-top: 4px; }
+      details.x-section { background: var(--x-card); border: 1px solid var(--stroke-secondary); border-radius: var(--r-m); padding: 4px 16px; }
+      details.x-section > summary { cursor: pointer; font: var(--type-body-strong); min-height: var(--tap); display: flex; align-items: center; gap: 8px; }
+      details.x-section[open] { padding-bottom: 16px; }
+      details.x-section .x-card { background: var(--x-card-2); }
+      .x-hidden { color: var(--text-secondary); font-style: italic; }
+      .x-muted { color: var(--text-secondary); }
+      .x-dl-list { display: grid; gap: 8px; }
+      .x-dl-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-top: 1px solid var(--stroke-secondary); }
+      .x-dl-list > li:first-child { border-top: 0; }
+      .x-plain { list-style: none; margin: 0; padding: 0; }
+      .x-days { font: var(--type-label); color: var(--x-red-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .x-sup { cursor: pointer; transition: border-color var(--dur-quick) var(--ease-out); }
+      .x-sup:hover, .x-sup:focus-visible { border-color: var(--x-red); outline: none; }
+      .x-kw { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+      .x-kw span { font: var(--type-caption); color: var(--text-secondary); background: var(--x-card-2); border-radius: var(--r-pill); padding: 2px 8px; }
+      .x-notice { border-left: 3px solid var(--x-red); }
+      .x-notice li { padding: 10px 0; border-top: 1px solid var(--stroke-secondary); display: grid; gap: 4px; }
+      .x-notice li:first-child { border-top: 0; }
+      .x-notice b { font: var(--type-label); }
+      .x-drawer { position: fixed; inset: 0; z-index: 50; display: none; }
+      .x-drawer.is-open { display: block; }
+      .x-drawer__scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.6); }
+      .x-drawer__panel {
+        position: absolute; top: 0; right: 0; bottom: 0; width: min(760px, 100%); overflow-y: auto;
+        background: var(--x-bg); border-left: 1px solid var(--stroke-primary); padding: 0 var(--gutter) 40px;
+        overscroll-behavior: contain;
+      }
+      .x-drawer__bar { position: sticky; top: 0; background: var(--x-bg); display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--stroke-secondary); z-index: 1; }
+      .x-close { min-width: var(--tap); min-height: var(--tap); border-radius: var(--r-pill); border: 1px solid var(--stroke-primary); background: var(--x-card); color: var(--text-primary); font: var(--type-label); cursor: pointer; }
+      .x-arg { display: grid; gap: 4px; padding: 14px 0; border-top: 1px solid var(--stroke-secondary); }
+      .x-arg:first-of-type { border-top: 0; }
+      .x-arg__k { font: var(--type-tag); color: var(--x-red-text); letter-spacing: 0.02em; }
+      .x-arg__v { font: var(--type-small); overflow-wrap: anywhere; }
+      .x-arg__v.is-claim { font: var(--type-body-strong); }
+      .x-paper { padding: 8px 0; border-top: 1px solid var(--stroke-secondary); }
+      .x-paper:first-child { border-top: 0; }
+      .x-email { display: grid; gap: 10px; margin-top: 10px; }
+      .x-email__row { display: grid; gap: 4px; }
+      .x-email__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+      .x-pre { white-space: pre-wrap; font: var(--type-small); line-height: 1.5; background: var(--x-card); border: 1px solid var(--stroke-secondary); border-radius: var(--r-s); padding: 12px; margin: 0; overflow-wrap: anywhere; }
+      .x-copy { min-height: 36px; padding: 0 12px; border-radius: var(--r-pill); border: 1px solid var(--x-red); background: transparent; color: var(--text-primary); font: var(--type-tag); cursor: pointer; position: relative; }
+      .x-copy::after { content: ""; position: absolute; inset: -4px 0; }
+      .x-copy.is-done { background: var(--x-red); color: #fff; }
+      .x-foot { padding: 20px 0 8px; border-top: 1px solid var(--stroke-secondary); font: var(--type-caption); color: var(--text-secondary); }
+      .x-empty { font: var(--type-small); color: var(--text-secondary); padding: 16px 0; }
+      .x-linked { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--stroke-secondary); display: grid; gap: 8px; }
+      .x-linked__row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .x-supchip {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 6px 0 12px; border-radius: var(--r-pill);
+        border: 1px solid var(--stroke-primary); background: var(--x-card-2); color: var(--text-primary); font: var(--type-tag); cursor: pointer; position: relative;
+      }
+      .x-supchip::after { content: ""; position: absolute; inset: -4px 0; }
+      .x-supchip:hover, .x-supchip:focus-visible { border-color: var(--x-red); outline: none; }
+      .x-supchip b { font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; color: var(--x-red-text); }
+      .x-supchip .x-badge { padding: 0 6px; }
+      .x-linked__toggle { justify-self: start; }
+      .x-linked__body { display: grid; gap: 8px; }
+      .x-linked__body:empty { display: none; }
+      .x-supblock { background: var(--x-card-2); border: 1px solid var(--stroke-secondary); border-radius: var(--r-s); scroll-margin-top: 140px; }
+      .x-supblock.is-open { border-color: var(--stroke-primary); }
+      .x-supblock__head {
+        width: 100%; display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; min-height: var(--tap); padding: 8px 12px;
+        background: transparent; border: 0; color: var(--text-primary); font: var(--type-small); text-align: left; cursor: pointer; border-radius: inherit;
+      }
+      .x-supblock__head:focus-visible { outline: 2px solid var(--x-red); outline-offset: -2px; }
+      .x-supblock__name { font: var(--type-label); flex: 1 1 200px; min-width: 0; display: grid; gap: 2px; }
+      .x-supblock__chev { color: var(--text-secondary); transition: transform var(--dur-quick) var(--ease-out); }
+      .x-supblock.is-open .x-supblock__chev { transform: rotate(90deg); }
+      .x-supblock__body { padding: 0 12px 14px; }
+      .x-supblock__body:empty { display: none; }
+      .x-supblock .x-pre { background: var(--x-card); }
+      .x-phd { display: grid; gap: 10px; }
+      .x-phd__sum { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font: var(--type-small); }
+      .x-phd__an { margin: 0; display: grid; gap: 8px; background: var(--x-card-2); border-radius: var(--r-s); padding: 12px; }
+      .x-supblock .x-phd__an { background: var(--x-card); }
+      .x-phd__an dt { font: var(--type-caption); color: var(--text-secondary); margin: 0; }
+      .x-phd__an dd { font: var(--type-small); margin: 2px 0 0; overflow-wrap: anywhere; }
+      .x-phd__group { display: grid; gap: 2px; }
+      .x-phd__gh { font: var(--type-tag); color: var(--text-secondary); margin: 6px 0 0; }
+      .x-phd__list > li { padding: 8px 0; border-top: 1px solid var(--stroke-secondary); display: grid; gap: 2px; min-width: 0; }
+      .x-phd__list > li:first-child { border-top: 0; }
+      .x-phd__name { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font: var(--type-label); }
+      .x-phd__yr { font: var(--type-caption); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+      .x-phd__topic { font: var(--type-small); overflow-wrap: anywhere; }
+      .x-phd__more { justify-self: start; margin-top: 4px; }
+      .x-supchip .x-phdn, .x-phdn { font: var(--type-caption); color: var(--text-secondary); white-space: nowrap; }
+      /* email draft language toggle */
+      .x-edraft { display: grid; gap: 10px; }
+      .x-edseg { justify-self: start; }
+      .x-edseg button { min-height: 36px; position: relative; }
+      .x-edseg button::after { content: ""; position: absolute; inset: -4px 0; }
+      .x-pre a { color: var(--text-primary); text-decoration: underline; text-decoration-color: var(--x-red); text-underline-offset: 3px; overflow-wrap: anywhere; }
+      /* competitiveness report */
+      .x-comp { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; align-items: start; }
+      .x-comp__docs { display: grid; gap: 20px; min-width: 0; }
+      .x-toc {
+        position: sticky; top: calc(var(--x-top-h, 110px) + 12px); max-height: calc(100vh - var(--x-top-h, 110px) - 24px); overflow-y: auto;
+        background: var(--x-card); border: 1px solid var(--stroke-secondary); border-radius: var(--r-m); padding: 10px; display: grid; gap: 2px; z-index: 5;
+      }
+      .x-toc__g { font: var(--type-tag); color: var(--x-red-text); margin: 8px 10px 2px; }
+      .x-toc__g:first-child { margin-top: 2px; }
+      .x-toc a {
+        display: flex; align-items: center; min-height: 40px; padding: 4px 10px; border-left: 2px solid transparent; border-radius: 0 var(--r-s) var(--r-s) 0;
+        font: var(--type-small); color: var(--text-secondary); text-decoration: none;
+      }
+      .x-toc a:hover { color: var(--text-primary); background: var(--x-card-2); }
+      .x-toc a.is-active { color: var(--text-primary); border-left-color: var(--x-red); background: var(--x-card-2); }
+      .x-md-sec { scroll-margin-top: calc(var(--x-top-h, 110px) + 16px); }
+      .x-md-sec > h2 { font: var(--type-title); margin: 0 0 4px; }
+      .x-md { font: var(--type-body); line-height: 1.7; min-width: 0; overflow-wrap: anywhere; }
+      .x-md h3 { font: var(--type-heading); margin: 8px 0 12px; }
+      .x-md h4 { font: var(--type-heading); margin: 28px 0 10px; padding-left: 12px; border-left: 3px solid var(--x-red); scroll-margin-top: calc(var(--x-top-h, 110px) + 16px); }
+      .x-md h5 { font: var(--type-body-strong); margin: 20px 0 8px; color: var(--x-red-text); }
+      .x-md h6 { font: var(--type-label); margin: 16px 0 6px; color: var(--text-secondary); }
+      .x-md p { margin: 0 0 12px; }
+      .x-md ul, .x-md ol { margin: 0 0 12px; padding-left: 22px; }
+      .x-md li { margin: 4px 0; }
+      .x-md li > ul, .x-md li > ol { margin: 4px 0 0; }
+      .x-md li::marker { color: var(--x-red-text); }
+      .x-md strong { font-weight: var(--weight-bold); color: var(--text-primary); }
+      .x-md hr { border: 0; border-top: 1px solid var(--stroke-secondary); margin: 20px 0; }
+      .x-md code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 0.9em; background: var(--x-card-2); border-radius: 6px; padding: 1px 6px; }
+      .x-md-tw { overflow-x: auto; margin: 0 0 16px; border: 1px solid var(--stroke-secondary); border-radius: var(--r-s); -webkit-overflow-scrolling: touch; }
+      .x-md table { border-collapse: collapse; width: 100%; min-width: 640px; font: var(--type-small); line-height: 1.55; }
+      .x-md th, .x-md td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--stroke-secondary); min-width: 110px; overflow-wrap: normal; word-break: normal; }
+      .x-md td a { overflow-wrap: anywhere; }
+      .x-md thead th { background: var(--x-card-2); font-weight: var(--weight-medium); color: var(--text-secondary); white-space: nowrap; }
+      .x-md tbody tr:last-child td { border-bottom: 0; }
+      @media (max-width: 900px) {
+        .x-comp { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+        .x-toc { display: flex; gap: 4px; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 4px; border-radius: var(--r-s); top: var(--x-top-h, 110px); scrollbar-width: none; }
+        .x-toc__g { display: none; }
+        .x-toc a { flex: none; white-space: nowrap; min-height: var(--tap); border-left: 0; border-bottom: 2px solid transparent; border-radius: 0; }
+        .x-toc a.is-active { border-bottom-color: var(--x-red); }
+        .x-md h4, .x-md-sec { scroll-margin-top: calc(var(--x-top-h, 110px) + 70px); }
+      }
+      @media (max-width: 640px) {
+        .x-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .x-kv { grid-template-columns: minmax(0, 1fr); }
+        .x-select { flex: 1 1 140px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="top">
+      <header class="x-top">
+        <div class="x-top__row">
+          <p class="x-brand"><b id="x-brand">博士岗位雷达看板</b><span class="x-updated" id="x-updated"></span></p>
+          <div class="x-seg" role="group" aria-label="Language">
+            <button type="button" data-lang="zh">中文</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+        <nav class="x-tabs" id="x-tabs" aria-label="Tabs"></nav>
+      </header>
+      <main class="x-wrap" id="app"></main>
+      <footer class="x-foot"><p id="x-foot"></p></footer>
+    </div>
+    <div class="x-drawer" id="x-drawer" aria-hidden="true">
+      <div class="x-drawer__scrim" data-act="close"></div>
+      <div class="x-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="x-drawer-title" id="x-drawer-panel"></div>
+    </div>
+
+    <!-- ===================== DATA (daily refresh replaces master.json / this block) ===================== -->
+    <script src="data.js"></script>
+    <script src="comp.js"></script>
+    <script>
+      /* DATA: the single source for everything on the page (data.js sets window.PHD_DATA). Render purely from it. */
+      const DATA = window.PHD_DATA || {};
+    </script>
+    <!-- ================================================================================================= -->
+
+    <script src="hark.js"></script>
+    <script>
+/* ---------- helpers ---------- */
+var ZH = /[\u4e00-\u9fff]/;
+/* known CSC terms translated before the Chinese check, so short labels survive in EN */
+var GLOSS = [
+  ["国外合作项目-与XX大学合作奖学金", "Foreign cooperation programme – scholarship with XX University"],
+  ["高水平项目", "High-level programme"], ["中外合作渠道", "China–foreign cooperation channel"],
+  ["国外合作项目", "foreign cooperation programme"], ["受理单位", "accepting unit"], ["事业单位", "public institution"],
+  ["双一流", "Double First-Class"], ["差额", "competitive nomination"], ["等额", "one-to-one nomination"],
+  ["（", "("], ["）", ")"], ["，", ", "], ["；", "; "], ["：", ": "], ["。", ". "], ["、", ", "]
+];
+var REGION_EN = { "英爱": "UK & Ireland", "DACH": "DACH", "北欧": "Nordics", "多渠道": "Multi-channel", "比荷卢": "Benelux" };
+var REGION_ZH = {};
+((window.PHD_DATA || {}).positions || []).forEach(function (p) { if (p.region && p.region_zh) REGION_ZH[p.region] = p.region_zh; });
+function regionLabel(r) { return lang === "en" ? (REGION_EN[r] || (ZH.test(r) ? "Other" : r)) : (REGION_ZH[r] || r); }
+var lang = "zh";
+var state = {
+  posSort: "total", posRange: "all", posRegion: "all", posVerified: false,
+  cscStatus: "all", cscList: false, cscCountry: "all", cscSort: "status",
+  supQ: "", supCountry: "all", supCsc: "all", supMin: 4, supDraft: false,
+  posHasSup: false, cscHasSup: false, supPhdCsc: false,
+  openCards: {}, openSups: {}, emailLang: "zh"
+};
+var T = {
+  brand: { zh: "博士岗位雷达看板", en: "PhD Radar" },
+  updated: { zh: "更新于", en: "Updated" },
+  tabs: {
+    overview: { zh: "总览", en: "Overview" },
+    positions: { zh: "岗位制", en: "Funded positions" },
+    csc: { zh: "CSC 线", en: "CSC track" },
+    supervisors: { zh: "目标导师", en: "Supervisors" },
+    channels: { zh: "渠道", en: "Channels" },
+    comp: { zh: "竞争力评估", en: "Competitiveness" }
+  },
+  foot: {
+    zh: "只收录带薪/全奖/studentship；信息均可溯源，未经官方页面与第二来源核实者标为待核实。",
+    en: "Only salaried / fully funded / studentship places are listed. Every item is traceable to a source; anything not confirmed against an official page plus a second source is marked unverified."
+  },
+  hidden: { zh: "（仅中文备注）", en: "(Chinese-only note hidden)" },
+  verified: { zh: "已核验", en: "Verified" },
+  unverified: { zh: "待核实", en: "Unverified" },
+  none: { zh: "—", en: "—" }
+};
+function t(k) { return (T[k] || {})[lang] || ""; }
+/* data text: in zh mode use the X_zh sibling when present, else X */
+function tr(o, k) {
+  if (!o) return undefined;
+  var z = o[k + "_zh"];
+  if (lang === "zh" && z != null && z !== "" && !(Array.isArray(z) && !z.length)) return z;
+  return o[k];
+}
+var COUNTRY_ZH = {
+  "UK": "英国", "Ireland": "爱尔兰", "Belgium": "比利时", "Netherlands": "荷兰", "Germany": "德国", "Austria": "奥地利",
+  "Luxembourg": "卢森堡", "Switzerland": "瑞士", "France": "法国", "Spain": "西班牙", "Italy": "意大利", "Sweden": "瑞典",
+  "Denmark": "丹麦", "Finland": "芬兰", "Norway": "挪威", "Russia": "俄罗斯", "Greece": "希腊", "Other": "其他"
+};
+["positions", "unverified_leads", "supervisors", "csc_programmes", "ghent_detail"].forEach(function (k) {
+  (window.PHD_DATA && window.PHD_DATA[k] || []).forEach(function (o) {
+    if (o.country && o.country_zh && !COUNTRY_ZH[o.country]) COUNTRY_ZH[o.country] = o.country_zh;
+  });
+});
+function countryLabel(c) { return lang === "zh" ? (COUNTRY_ZH[c] || c) : c; }
+function cty(o) { return lang === "zh" ? (o.country_zh || COUNTRY_ZH[o.country] || o.country || "") : (o.country || ""); }
+function txt(o, k) { return ftHtml(tr(o, k)); }
+function L(zh, en) { return lang === "zh" ? zh : en; }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+/* free text: in EN mode, text containing Chinese is withheld */
+function ft(s) {
+  if (s == null || s === "") return "";
+  s = String(s);
+  if (lang === "en" && ZH.test(s)) {
+    GLOSS.forEach(function (g) { s = s.split(g[0]).join(g[1]); });
+    if (ZH.test(s)) return null;
+  }
+  return s;
+}
+function ftHtml(s, dim) {
+  var v = ft(s);
+  if (v === null) return '<span class="x-hidden">' + esc(t("hidden")) + "</span>";
+  if (v === "") return "";
+  return dim ? '<span class="x-muted">' + esc(v) + "</span>" : esc(v);
+}
+function school(o) {
+  var zh = o.school_zh || "", en = o.school_en || o.school || "";
+  if (lang === "en") return '<span class="x-school__zh">' + esc(en) + "</span>";
+  return '<span class="x-school__zh">' + esc(zh || en) + "</span>";
+}
+function host(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return u; } }
+function link(u, label) {
+  if (!u) return "";
+  return '<a class="x-a" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(label || host(u)) + "</a>";
+}
+function srcLinks(arr, label) {
+  arr = (arr || []).filter(Boolean);
+  if (!arr.length) return "";
+  return arr.map(function (u, i) { return link(u, (label || L("来源", "Source")) + " " + (i + 1)); }).join(" ");
+}
+function bar(v, max, dim) {
+  var pct = Math.max(0, Math.min(100, (Number(v) || 0) / max * 100));
+  return '<span class="x-bar' + (dim ? " is-dim" : "") + '"><i style="width:' + pct.toFixed(0) + '%"></i></span>';
+}
+function vBadge(ok) {
+  return ok
+    ? '<span class="x-badge x-badge--ok">' + esc(t("verified")) + "</span>"
+    : '<span class="x-badge x-badge--warn">' + esc(t("unverified")) + "</span>";
+}
+function cscBadge(s) {
+  var map = {
+    active: ["x-badge--ok", L("CSC 开放", "CSC active")],
+    paused_or_stopped: ["x-badge--redline", L("CSC 暂停/停办", "CSC paused/stopped")],
+    not_found: ["x-badge--muted", L("未找到 CSC", "No CSC scheme found")],
+    none: ["x-badge--muted", L("无 CSC", "No CSC")],
+    unknown: ["x-badge--muted", L("CSC 未知", "CSC unknown")]
+  };
+  var m = map[s] || ["x-badge--muted", s || "—"];
+  return '<span class="x-badge ' + m[0] + '">' + esc(m[1]) + "</span>";
+}
+function starBadge(on) {
+  return on ? '<span class="x-badge x-badge--star">★ ' + esc(L("名单内", "On CSC list")) + "</span>" : "";
+}
+/* robust renderer: strings, arrays, objects */
+function anyVal(v) {
+  if (v == null || v === "") return "";
+  if (typeof v === "boolean") return v ? L("是", "Yes") : L("否", "No");
+  if (typeof v === "number") return String(v);
+  if (typeof v === "string") {
+    if (/^https?:\/\//.test(v.trim())) return link(v.trim());
+    return ftHtml(v);
+  }
+  if (Array.isArray(v)) {
+    var items = v.map(anyVal).filter(function (x) { return x !== ""; });
+    if (!items.length) return "";
+    return '<ul class="x-ul">' + items.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>";
+  }
+  var rows = Object.keys(v).filter(function (k) { return !/_zh$/.test(k); }).map(function (k) {
+    var inner = anyVal(tr(v, k));
+    if (inner === "") return "";
+    return "<div><dt>" + esc(keyLabel(k)) + "</dt><dd>" + inner + "</dd></div>";
+  }).filter(Boolean);
+  return rows.length ? '<dl class="x-dl">' + rows.join("") + "</dl>" : "";
+}
+var KEYS = {
+  title: { zh: "标题", en: "Title" }, year: { zh: "年份", en: "Year" }, venue: { zh: "发表", en: "Venue" },
+  url: { zh: "链接", en: "Link" }, doi: { zh: "DOI", en: "DOI" },
+  link_to_user: { zh: "与你的连接", en: "How it connects" },
+  how_it_connects: { zh: "与你的连接", en: "How it connects" },
+  authors: { zh: "作者", en: "Authors" }, note: { zh: "备注", en: "Note" },
+  notes: { zh: "备注", en: "Notes" }, value: { zh: "数值", en: "Value" },
+  source_url: { zh: "来源", en: "Source" }, verified: { zh: "核验", en: "Verified" },
+  a_host_or_supervisor_certified_english: { zh: "a 学校/导师出具英语证明", en: "a. Host/supervisor-certified English" },
+  b_english_proof_after_csc_result: { zh: "b CSC 结果后补英语证明", en: "b. English proof after CSC result" },
+  c_language_only_conditional_offer_ok: { zh: "c 仅语言条件的 offer 可否", en: "c. Language-only conditional offer OK" }
+};
+var KEYS_ZH_FALLBACK = {
+  link_to_user_project: "与你项目的连接", programme: "项目", school: "学校", country: "国家", status: "状态",
+  deadline: "截止", funding: "资助", topic: "主题", text: "内容", channel: "渠道", name: "姓名", unit: "单位"
+};
+function keyLabel(k) {
+  if (KEYS[k]) return KEYS[k][lang];
+  return lang === "zh" ? (KEYS_ZH_FALLBACK[k] || k.replace(/_/g, " ")) : k.replace(/_/g, " ");
+}
+function daysBadge(d, tight) {
+  if (d == null) return '<span class="x-badge x-badge--muted">' + esc(L("滚动/未定", "Rolling / TBC")) + "</span>";
+  var cls = d <= 40 ? "x-days" : "x-badge x-badge--muted";
+  return '<span class="' + cls + '">' + esc(L("剩 " + d + " 天", d + " days left")) + "</span>";
+}
+function qsNum(q) {
+  var m = String(q || "").match(/(\d+)/);
+  return m ? Number(m[1]) : Infinity;
+}
+function rangeKey(p) {
+  if (p.days_left == null) return "rolling";
+  if (p.days_left > 60) return "gt60";
+  if (p.days_left >= 50) return "50_60";
+  if (p.days_left > 40) return "40_50";
+  return "lt40";
+}
+/* ---------- overview ---------- */
+function kpi(fig, label, red) {
+  return '<div class="x-kpi"><span class="x-kpi__fig' + (red ? " is-red" : "") + '">' + esc(fig) + '</span><span class="x-kpi__label">' + esc(label) + "</span></div>";
+}
+function viewOverview() {
+  var P = DATA.positions || [], S = DATA.supervisors || [], C = DATA.csc_programmes || [];
+  var verified = P.filter(function (p) { return p.verified; }).length;
+  var tight = P.filter(function (p) { return p.time_tight; }).length;
+  var drafts = S.filter(function (s) { return s.email_draft; }).length;
+  var cnt = function (st) { return C.filter(function (c) { return c.status === st; }).length; };
+  var h = "";
+  h += '<h2 class="x-h2">' + esc(L("今日概况", "Today at a glance")) + "</h2>";
+  h += '<div class="x-kpis">'
+    + kpi(P.length, L("岗位制机会", "Funded positions"))
+    + kpi(verified, L("已核验岗位", "Verified positions"))
+    + kpi(tight, L("时间紧张", "Time-tight"), tight > 0)
+    + kpi(S.length, L("目标导师", "Supervisors"))
+    + kpi(drafts, L("套磁信草稿已就绪", "Email drafts ready"))
+    + kpi(cnt("active"), L("CSC 项目开放", "CSC active"))
+    + kpi(cnt("paused_or_stopped"), L("CSC 暂停/停办", "CSC paused/stopped"))
+    + kpi(cnt("not_found"), L("未找到 CSC", "No CSC found"))
+    + "</div>";
+  /* two tracks */
+  h += '<div class="x-two">';
+  var starActive = C.filter(function (c) { return c.in_user_csc_list && c.status === "active"; }).length;
+  var supActive = S.filter(function (s) { return s.csc_status === "active"; }).length;
+  var confirmed = C.filter(function (c) { return c.deadline_2027_confirmed; }).length;
+  var best = P.filter(function (p) { return rangeKey(p) === "50_60"; }).length;
+  h += '<div class="x-card is-accent"><h3>' + esc(L("CSC 线", "CSC track")) + "</h3>"
+    + '<p class="x-sub">' + esc(L("2027 年 3 月向 CSC 递交申请，5 月出结果；3 月之前必须拿到导师/学校的接收。", "Submit to the CSC in March 2027, result in May 2027. Supervisor acceptance must be in hand before March.")) + "</p>"
+    + '<dl class="x-kv">'
+    + "<div><dt>" + esc(L("开放项目", "Active schemes")) + "</dt><dd>" + cnt("active") + " / " + C.length + "</dd></div>"
+    + "<div><dt>" + esc(L("★ 名单内且开放", "★ On your list and active")) + "</dt><dd>" + starActive + "</dd></div>"
+    + "<div><dt>" + esc(L("2027 截止已确认", "2027 deadline confirmed")) + "</dt><dd>" + confirmed + "</dd></div>"
+    + "<div><dt>" + esc(L("学校走 CSC 的导师", "Supervisors at CSC-active schools")) + "</dt><dd>" + supActive + "</dd></div>"
+    + "</dl></div>";
+  h += '<div class="x-card"><h3>' + esc(L("岗位制线", "Funded-position track")) + "</h3>"
+    + '<p class="x-sub">' + esc(L("带薪/全奖岗位，按各校截止日期申请，入学约 2027 年 9 月。", "Salaried / fully funded positions, each with its own deadline; start around September 2027.")) + "</p>"
+    + '<dl class="x-kv">'
+    + "<div><dt>" + esc(L("岗位", "Positions")) + "</dt><dd>" + P.length + L(" 个（已核验 ", " (verified ") + verified + ")" + "</dd></div>"
+    + "<div><dt>" + esc(L("50–60 天 最佳窗口", "50–60 days, best window")) + "</dt><dd>" + best + "</dd></div>"
+    + "<div><dt>" + esc(L("时间紧张", "Time-tight")) + "</dt><dd>" + tight + "</dd></div>"
+    + "<div><dt>" + esc(L("待核实线索", "Unverified leads")) + "</dt><dd>" + (DATA.unverified_leads || []).length + "</dd></div>"
+    + "</dl></div>";
+  h += "</div>";
+  /* next 14 days */
+  var soon = P.filter(function (p) { return p.days_left != null && p.days_left <= 14; })
+    .sort(function (a, b) { return a.days_left - b.days_left; });
+  h += '<h2 class="x-h2">' + esc(L("未来 14 天截止", "Deadlines in the next 14 days")) + "</h2>";
+  if (!soon.length) h += '<p class="x-empty">' + esc(L("未来 14 天没有已知截止。", "No known deadlines in the next 14 days.")) + "</p>";
+  else {
+    h += '<div class="x-card"><ul class="x-plain x-dl-list">' + soon.map(function (p) {
+      return "<li><div>" + school(p) + '<p class="x-meta">' + txt(p, "title") + "</p></div>"
+        + '<div class="x-badges">' + txt(p, "deadline") + " " + daysBadge(p.days_left) + "</div></li>";
+    }).join("") + "</ul></div>";
+  }
+  /* top 5 */
+  var top = P.slice().sort(function (a, b) { return b.total - a.total; }).slice(0, 5);
+  h += '<h2 class="x-h2">' + esc(L("总分前 5 的岗位", "Top 5 positions by total score")) + "</h2>";
+  h += '<div class="x-card"><ul class="x-plain x-dl-list">' + top.map(function (p) {
+    return "<li><div>" + school(p) + '<p class="x-meta">' + txt(p, "title") + "</p>"
+      + '<p class="x-meta">' + esc(cty(p)) + " · " + (p.deadline ? txt(p, "deadline") : esc(L("滚动/未定", "Rolling / TBC"))) + "</p></div>"
+      + '<div class="x-badges"><b>' + p.total + "</b>" + bar(p.total, 100) + vBadge(p.verified) + "</div></li>";
+  }).join("") + "</ul></div>";
+  h += '<p class="x-sub">' + esc(L("总分为看板内部打分（满分 100），用于排序。", "Total is this board's internal score out of 100, used for ranking.")) + "</p>";
+  return h;
+}
+
+/* ---------- shared controls ---------- */
+function opt(v, label, cur) { return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? " selected" : "") + ">" + esc(label) + "</option>"; }
+function sel(key, label, opts) {
+  return "<label>" + esc(label) + ' <select class="x-select" data-f="' + key + '">'
+    + opts.map(function (o) { return opt(o[0], o[1], state[key]); }).join("") + "</select></label>";
+}
+function chipBtn(key, val, label) {
+  return '<button type="button" class="x-chipbtn" data-act="set" data-k="' + key + '" data-v="' + esc(val) + '" aria-pressed="' + (String(state[key]) === String(val)) + '">' + esc(label) + "</button>";
+}
+function toggle(key, label) {
+  return '<label class="x-toggle"><input type="checkbox" data-f="' + key + '"' + (state[key] ? " checked" : "") + " /> " + esc(label) + "</label>";
+}
+function uniq(arr) { return arr.filter(function (v, i) { return v && arr.indexOf(v) === i; }).sort(); }
+function kvRow(label, html) { return html ? "<div><dt>" + esc(label) + "</dt><dd>" + html + "</dd></div>" : ""; }
+
+/* ---------- positions ---------- */
+function langScore(p) {
+  var s = ((p.language_requirement || "") + " " + (p.language_when || "")).toLowerCase();
+  if (/norwegian|scandinavian|dutch|swedish|danish|finnish|german (is )?required|thesis language|in french/.test(s)) return 0;
+  if (/ielts|toefl|test score|certificate|cefr|\bb2\b|\bc1\b/.test(s) && !/no test|no specific test|no certificate/.test(s)) return 1;
+  return 2;
+}
+function cscScore(p) {
+  var s = (p.csc || "").toLowerCase();
+  if (/^yes|separate csc|csc route exists/.test(s)) return 3;
+  if (/not needed|no csc route needed|salaried/.test(s)) return 2;
+  if (!s || /unclear|unknown/.test(s)) return 1;
+  return 0;
+}
+var POS_SORTS = {
+  total: function (a, b) { return b.total - a.total; },
+  direction: function (a, b) { return b.direction_fit - a.direction_fit || b.total - a.total; },
+  background: function (a, b) { return b.background_fit - a.background_fit || b.total - a.total; },
+  language: function (a, b) { return langScore(b) - langScore(a) || b.total - a.total; },
+  csc: function (a, b) { return cscScore(b) - cscScore(a) || b.total - a.total; },
+  rank: function (a, b) { return qsNum(a.qs) - qsNum(b.qs) || b.total - a.total; },
+  deadline: function (a, b) { return (a.days_left == null ? 1e9 : a.days_left) - (b.days_left == null ? 1e9 : b.days_left); },
+  sups: function (a, b) { return supCount(b) - supCount(a) || b.total - a.total; }
+};
+
+/* ---------- linked supervisors (positions, CSC, leads) ---------- */
+var SUP_IDX = {};
+(DATA.supervisors || []).forEach(function (s, i) { SUP_IDX[s.name] = i; });
+function linkedIdx(o) {
+  return (o.supervisors_linked || []).map(function (n) { return SUP_IDX[n]; }).filter(function (i) { return i != null; });
+}
+function supCount(o) { return linkedIdx(o).length; }
+function supSchool(s) { return lang === "en" ? esc(s.school_en) : esc(s.school_zh || s.school_en); }
+function linkedHtml(o, key) {
+  var ids = linkedIdx(o), n = ids.length;
+  var h = '<div class="x-linked" data-card="' + key + '">';
+  h += '<span class="x-arg__k">' + esc(L("对口导师（" + n + "）", "Matched supervisors (" + n + ")")) + "</span>";
+  if (!n) return h + '<span class="x-meta">' + esc(L("暂无对口导师", "No matched supervisor yet")) + "</span></div>";
+  h += '<div class="x-linked__row">' + ids.map(function (i) {
+    var s = DATA.supervisors[i];
+    return '<button type="button" class="x-supchip" data-act="supchip" data-card="' + key + '" data-i="' + i + '">'
+      + esc(s.name) + " <b>" + s.relevance + "/10</b>" + phdCountTag(s) + vBadge(s.verified) + "</button>";
+  }).join("") + "</div>";
+  var open = !!state.openCards[key];
+  h += '<button type="button" class="x-chipbtn x-linked__toggle" data-act="cardx" data-card="' + key + '" aria-expanded="' + open + '">'
+    + esc(open ? L("收起导师详情", "Hide supervisor details") : L("展开导师详情", "Show supervisor details")) + "</button>";
+  h += '<div class="x-linked__body" id="lb-' + key + '">' + (open ? linkedBody(o, key) : "") + "</div>";
+  return h + "</div>";
+}
+function supBlock(key, i) {
+  var s = DATA.supervisors[i], k = key + "-" + i, open = !!state.openSups[k];
+  return '<div class="x-supblock' + (open ? " is-open" : "") + '" id="sb-' + k + '">'
+    + '<button type="button" class="x-supblock__head" data-act="supx" data-card="' + key + '" data-i="' + i + '" aria-expanded="' + open + '">'
+    + '<span class="x-supblock__name"><span>' + esc(s.name) + '</span><span class="x-meta">' + supSchool(s) + "</span></span>"
+    + '<span class="x-badges"><b>' + s.relevance + "/10</b>" + bar(s.relevance, 10) + vBadge(s.verified) + "</span>"
+    + '<span class="x-supblock__chev" aria-hidden="true">▸</span></button>'
+    + '<div class="x-supblock__body">' + (open ? supDetailHtml(s, "h4") : "") + "</div></div>";
+}
+function linkedBody(o, key) { return linkedIdx(o).map(function (i) { return supBlock(key, i); }).join(""); }
+function itemByKey(key) {
+  var src = { p: DATA.positions, c: DATA.csc_programmes, u: DATA.unverified_leads }[key.charAt(0)] || [];
+  return src[Number(key.slice(1))];
+}
+function setCard(key, open) {
+  state.openCards[key] = open;
+  var wrap = document.querySelector('.x-linked[data-card="' + key + '"]');
+  if (!wrap) return;
+  var btn = wrap.querySelector('[data-act="cardx"]'), body = wrap.querySelector(".x-linked__body");
+  btn.setAttribute("aria-expanded", open);
+  btn.textContent = open ? L("收起导师详情", "Hide supervisor details") : L("展开导师详情", "Show supervisor details");
+  body.innerHTML = open ? linkedBody(itemByKey(key), key) : "";
+}
+function setSup(key, i, open) {
+  var k = key + "-" + i;
+  state.openSups[k] = open;
+  var blk = document.getElementById("sb-" + k);
+  if (!blk) return;
+  blk.classList.toggle("is-open", open);
+  blk.querySelector(".x-supblock__head").setAttribute("aria-expanded", open);
+  blk.querySelector(".x-supblock__body").innerHTML = open ? supDetailHtml(DATA.supervisors[i], "h4") : "";
+}
+function jumpSup(key, i) {
+  if (!state.openCards[key]) setCard(key, true);
+  if (!state.openSups[key + "-" + i]) setSup(key, i, true);
+  var blk = document.getElementById("sb-" + key + "-" + i);
+  if (blk) {
+    blk.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    blk.querySelector(".x-supblock__head").focus({ preventScroll: true });
+  }
+}
+function posCard(p) {
+  var tight = p.time_tight || (p.days_left != null && p.days_left <= 40);
+  var tags = vBadge(p.verified)
+    + (tight ? '<span class="x-badge x-badge--red">' + esc(L("时间紧张", "Time-tight")) + "</span>" : "")
+    + (p.background_low ? '<span class="x-badge x-badge--redline">' + esc(L("背景匹配度低", "Low background fit")) + "</span>" : "")
+    + (rangeKey(p) === "50_60" ? '<span class="x-badge x-badge--ok">' + esc(L("最佳窗口", "Best window")) + "</span>" : "");
+  var h = '<article class="x-card"><div class="x-row-head"><div class="x-school">' + school(p)
+    + '<span class="x-meta">' + esc(regionLabel(p.region)) + " · " + esc(cty(p)) + (p.qs ? " · QS " + txt(p, "qs") : "") + "</span></div>"
+    + '<div class="x-badges">' + (p.deadline ? '<span class="x-meta">' + txt(p, "deadline") + "</span>" : "") + daysBadge(p.days_left) + "</div></div>";
+  h += '<p class="x-title">' + txt(p, "title") + "</p>";
+  h += '<div class="x-badges">' + tags + "</div>";
+  h += '<div class="x-scores">'
+    + "<span>" + esc(L("总分", "Total")) + "</span>" + bar(p.total, 100) + "<b>" + p.total + "</b>"
+    + "<span>" + esc(L("方向", "Direction")) + "</span>" + bar(p.direction_fit, 5, true) + "<b>" + p.direction_fit + "/5</b>"
+    + "<span>" + esc(L("背景", "Background")) + "</span>" + bar(p.background_fit, 5, true) + "<b>" + p.background_fit + "/5</b></div>";
+  h += '<dl class="x-kv">'
+    + kvRow(L("导师/团队", "Supervisor / group"), txt(p, "supervisor_group"))
+    + kvRow(L("资助", "Funding"), txt(p, "funding"))
+    + kvRow(L("语言要求", "Language requirement"), txt(p, "language_requirement"))
+    + kvRow(L("语言证明时间", "When language proof is due"), txt(p, "language_when"))
+    + kvRow("CSC", txt(p, "csc"))
+    + kvRow(L("入学", "Start"), txt(p, "start"))
+    + "</dl>";
+  if (p.notes) h += '<details class="x-more"><summary>' + esc(L("备注", "Notes")) + '</summary><div class="x-more__body">' + txt(p, "notes") + "</div></details>";
+  h += '<div class="x-links">' + link(p.url, L("官方页面", "Official page")) + " " + srcLinks(p.other_sources) + "</div>";
+  h += linkedHtml(p, "p" + DATA.positions.indexOf(p));
+  return h + "</article>";
+}
+function leadCard(l) {
+  return '<div class="x-card"><div class="x-row-head"><div class="x-school">' + school(l) + '<span class="x-meta">' + esc(cty(l)) + "</span></div>"
+    + '<div class="x-badges">' + vBadge(false) + '<span class="x-meta">' + txt(l, "deadline") + "</span></div></div>"
+    + '<p class="x-title">' + txt(l, "title") + "</p>"
+    + '<dl class="x-kv">'
+    + kvRow(L("资助", "Funding"), txt(l, "funding"))
+    + kvRow(L("为何待核实", "Why unverified"), txt(l, "why_unverified"))
+    + kvRow(L("下一步", "Next step"), txt(l, "next_step"))
+    + kvRow(L("来源渠道", "Found via"), txt(l, "found_via"))
+    + kvRow(L("方向 / 背景", "Direction / background"), l.direction_fit + "/5 · " + l.background_fit + "/5")
+    + "</dl><div class=\"x-links\">" + srcLinks(l.sources) + "</div>"
+    + linkedHtml(l, "u" + DATA.unverified_leads.indexOf(l)) + "</div>";
+}
+function viewPositions() {
+  var P = DATA.positions || [];
+  var rKey = function (r) { return REGION_EN[r] || r; };
+  var regions = uniq(P.map(function (p) { return p.region; })).filter(function (r, i, a) {
+    return a.map(rKey).indexOf(rKey(r)) === i;
+  });
+  var list = P.filter(function (p) {
+    if (state.posRange !== "all" && rangeKey(p) !== state.posRange) return false;
+    if (state.posRegion !== "all" && rKey(p.region) !== state.posRegion) return false;
+    if (state.posVerified && !p.verified) return false;
+    if (state.posHasSup && !supCount(p)) return false;
+    return true;
+  }).sort(POS_SORTS[state.posSort] || POS_SORTS.total);
+  var h = '<div><h2 class="x-h2">' + esc(L("岗位制机会", "Funded positions")) + '</h2><p class="x-sub">'
+    + esc(L("带薪 / 全奖 / studentship。50–60 天是准备材料的最佳窗口。", "Salaried, fully funded or studentship. 50–60 days out is the best window to prepare.")) + "</p></div>";
+  h += '<div class="x-controls">'
+    + sel("posSort", L("排序", "Sort"), [["total", L("总分", "Total")], ["direction", L("方向", "Direction")], ["background", L("背景", "Background")], ["language", L("语言（门槛低优先）", "Language (easiest first)")], ["csc", L("CSC（可走优先）", "CSC (route first)")], ["rank", L("排名", "QS rank")], ["deadline", L("截止", "Deadline")], ["sups", L("导师数", "# supervisors")]])
+    + sel("posRegion", L("地区", "Region"), [["all", L("全部", "All")]].concat(regions.map(function (r) { return [rKey(r), regionLabel(r)]; })))
+    + toggle("posVerified", L("只看已核验", "Verified only"))
+    + toggle("posHasSup", L("只看有导师", "Has supervisors only")) + "</div>";
+  h += '<div class="x-controls">' + chipBtn("posRange", "all", L("全部", "All"))
+    + chipBtn("posRange", "lt40", L("≤40天 时间紧张", "≤40 days, time-tight"))
+    + chipBtn("posRange", "40_50", L("41–49天", "41–49 days"))
+    + chipBtn("posRange", "50_60", L("50–60天 最佳", "50–60 days, best"))
+    + chipBtn("posRange", "gt60", L(">60天", ">60 days"))
+    + chipBtn("posRange", "rolling", L("滚动/未定", "Rolling / TBC")) + "</div>";
+  h += '<p class="x-count">' + esc(L("显示 " + list.length + " / " + P.length, "Showing " + list.length + " of " + P.length)) + "</p>";
+  h += list.length ? '<div class="x-list">' + list.map(posCard).join("") + "</div>" : '<p class="x-empty">' + esc(L("没有符合条件的岗位。", "No positions match these filters.")) + "</p>";
+  var U = (DATA.unverified_leads || []).filter(function (l) { return !state.posHasSup || supCount(l); });
+  if (U.length) h += '<details class="x-section"><summary>' + esc(L("待核实线索", "Unverified leads")) + ' <span class="x-count">' + U.length + '</span></summary><div class="x-list">' + U.map(leadCard).join("") + "</div></details>";
+  return h;
+}
+
+/* ---------- CSC ---------- */
+function nomBadge(t) {
+  t = t || "";
+  var c = /差额|competitive/i.test(t), d = /等额/.test(t);
+  if (c && d) return '<span class="x-badge x-badge--muted">' + esc(L("等额/差额未定", "Nomination type unclear")) + "</span>";
+  if (c) return '<span class="x-badge x-badge--warn">' + esc(L("差额", "Competitive nomination")) + "</span>";
+  if (d) return '<span class="x-badge x-badge--ok">' + esc(L("等额", "One-to-one nomination")) + "</span>";
+  return "";
+}
+var STATUS_ORDER = { active: 0, paused_or_stopped: 1, not_found: 2, none: 3, unknown: 4 };
+function cscCard(c) {
+  var aq = c.annual_quota_or_admitted || {}, lf = c.language_flex || {};
+  var h = '<article class="x-card' + (c.in_user_csc_list && c.status === "active" ? "" : "") + '"><div class="x-row-head"><div class="x-school">' + school(c)
+    + '<span class="x-meta">' + esc(cty(c)) + "</span></div>"
+    + '<div class="x-badges">' + starBadge(c.in_user_csc_list) + cscBadge(c.status) + nomBadge(c.nomination_method) + vBadge(c.verified) + "</div></div>";
+  var dl = '<span class="x-badge ' + (c.deadline_2027_confirmed ? "x-badge--ok" : "x-badge--warn") + '">' + esc(c.deadline_2027_confirmed ? L("已确认", "Confirmed") : L("未确认", "Not confirmed")) + "</span>";
+  h += '<dl class="x-kv">'
+    + kvRow(L("2027 校内截止", "2027 internal deadline"), txt(c, "internal_deadline_2027") + " " + dl)
+    + kvRow(L("名额", "Quota"), txt(c, "quota"))
+    + kvRow(L("每年录取/资助数", "Awards / admitted per year"), (txt(aq, "value") || "—") + (aq.source_url ? " · " + link(aq.source_url, L("来源", "Source")) : ""))
+    + kvRow(L("推荐方式", "Nomination"), txt(c, "nomination_method"))
+    + kvRow(L("适用学科", "Eligible fields"), txt(c, "eligible_fields"))
+    + kvRow(L("设计/HCI 接受度", "Design / HCI acceptance"), txt(c, "design_hci_acceptance"))
+    + kvRow(L("CSC 前需导师/offer", "Supervisor or offer before CSC"), txt(c, "supervisor_or_offer_before_csc"))
+    + kvRow(L("语言要求", "Language requirement"), txt(c, "language_requirement"))
+    + kvRow(L("语言时间", "Language timing"), txt(c, "language_timing"))
+    + "</dl>";
+  var lfKeys = ["a_host_or_supervisor_certified_english", "b_english_proof_after_csc_result", "c_language_only_conditional_offer_ok", "notes"];
+  var lfRows = lfKeys.map(function (k) { return lf[k] ? "<div><dt>" + esc(keyLabel(k)) + "</dt><dd>" + txt(lf, k) + "</dd></div>" : ""; }).join("");
+  if (lfRows) h += '<details class="x-more"><summary>' + esc(L("语言弹性", "Language flexibility")) + " " + (lf.verified ? "" : "· " + esc(t("unverified"))) + '</summary><div class="x-more__body"><dl class="x-dl">' + lfRows + "</dl>" + (lf.source_url ? "<p>" + link(lf.source_url, L("来源", "Source")) + "</p>" : "") + "</div></details>";
+  if (c.notes) h += '<p class="x-sub">' + txt(c, "notes") + "</p>";
+  h += '<div class="x-links">' + link(c.programme_url, L("项目页面", "Programme page")) + " " + (c.source_url && c.source_url !== c.programme_url ? link(c.source_url, L("来源", "Source")) : "") + "</div>";
+  h += linkedHtml(c, "c" + DATA.csc_programmes.indexOf(c));
+  return h + "</article>";
+}
+function ghentCard(g) {
+  return '<div class="x-card is-accent"><div class="x-row-head"><div class="x-school">'
+    + school(g)
+    + '<span class="x-meta">' + esc(cty(g)) + "</span></div>"
+    + '<div class="x-badges">' + nomBadge(g.nomination) + vBadge(g.verified) + "</div></div>"
+    + '<p class="x-title">' + txt(g, "programme") + "</p>"
+    + '<dl class="x-kv">'
+    + kvRow(L("校内截止", "Internal deadline"), '<span class="x-days">' + txt(g, "internal_deadline") + "</span>")
+    + kvRow(L("名额", "Quota"), txt(g, "quota"))
+    + kvRow(L("2027 状态", "2027 status"), txt(g, "status_2027"))
+    + kvRow(L("推荐方式", "Nomination"), txt(g, "nomination"))
+    + "</dl><p class=\"x-sub\">" + txt(g, "notes") + "</p>"
+    + '<div class="x-links">' + link(g.csc_programme_url, L("项目页面", "Programme page")) + " " + link(g.call_pdf, L("2027 招募 PDF", "2027 call PDF")) + "</div></div>";
+}
+function viewCSC() {
+  var C = DATA.csc_programmes || [];
+  var countries = uniq(C.map(function (c) { return c.country; }));
+  var list = C.filter(function (c) {
+    if (state.cscStatus !== "all" && c.status !== state.cscStatus) return false;
+    if (state.cscList && !c.in_user_csc_list) return false;
+    if (state.cscCountry !== "all" && c.country !== state.cscCountry) return false;
+    if (state.cscHasSup && !supCount(c)) return false;
+    return true;
+  }).sort(function (a, b) {
+    if (state.cscSort === "sups") return supCount(b) - supCount(a) || (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) || (b.in_user_csc_list - a.in_user_csc_list);
+    if (state.cscSort === "country") return a.country.localeCompare(b.country) || (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+    if (state.cscSort === "confirmed") return (b.deadline_2027_confirmed - a.deadline_2027_confirmed) || (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+    return (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) || (b.in_user_csc_list - a.in_user_csc_list);
+  });
+  var h = '<div><h2 class="x-h2">' + esc(L("CSC 线：联合培养/合作奖学金", "CSC track: partner scholarships")) + '</h2><p class="x-sub">'
+    + esc(L("★ 为你的 CSC 合作院校名单内。", "★ marks schools on your CSC partner list.")) + "</p></div>";
+  (DATA.ghent_detail || []).forEach(function (g) { h += ghentCard(g); });
+  var N = DATA.csc_general_notes || [];
+  if (N.length) {
+    h += '<div class="x-card x-notice"><h3>' + esc(L("CSC 通用说明", "General CSC notes")) + '</h3><ul class="x-plain">' + N.map(function (n) {
+      return "<li><b>" + txt(n, "topic") + "</b> " + vBadge(n.verified) + '<span class="x-meta">' + txt(n, "text") + "</span>" + (n.url ? '<span class="x-meta">' + link(n.url) + "</span>" : "") + "</li>";
+    }).join("") + "</ul></div>";
+  }
+  h += '<div class="x-controls">'
+    + sel("cscStatus", L("状态", "Status"), [["all", L("全部", "All")], ["active", L("CSC 开放", "CSC active")], ["paused_or_stopped", L("暂停/停办", "Paused / stopped")], ["not_found", L("未找到", "Not found")]])
+    + sel("cscCountry", L("国家", "Country"), [["all", L("全部", "All")]].concat(countries.map(function (c) { return [c, countryLabel(c)]; })))
+    + sel("cscSort", L("排序", "Sort"), [["status", L("状态", "Status")], ["country", L("国家", "Country")], ["confirmed", L("截止已确认优先", "Confirmed deadline first")], ["sups", L("导师数", "# supervisors")]])
+    + toggle("cscList", L("只看 ★ 名单内", "★ list only"))
+    + toggle("cscHasSup", L("只看有导师", "Has supervisors only")) + "</div>";
+  h += '<p class="x-count">' + esc(L("显示 " + list.length + " / " + C.length, "Showing " + list.length + " of " + C.length)) + "</p>";
+  h += list.length ? '<div class="x-list">' + list.map(cscCard).join("") + "</div>" : '<p class="x-empty">' + esc(L("没有符合条件的项目。", "No schemes match these filters.")) + "</p>";
+  return h;
+}
+
+/* ---------- supervisors ---------- */
+var SCHOOL_COUNTRY = {};
+(DATA.csc_programmes || []).concat(DATA.positions || []).forEach(function (o) {
+  if (o.country && o.school_zh && !SCHOOL_COUNTRY[o.school_zh]) SCHOOL_COUNTRY[o.school_zh] = o.country;
+});
+var COUNTRY_RULES = [
+  [/Milan|Pisa|Bologna|Torino|Turin|Ital/i, "Italy"],
+  [/Munich|LMU|Aachen|RWTH|Dresden|Berlin|German|Stuttgart|Darmstadt|Saarland|Weimar|Siegen|Bremen|Hamburg|Karlsruhe/i, "Germany"],
+  [/Leiden|Delft|Eindhoven|Amsterdam|Utrecht|Twente|Netherlands|Groningen|Tilburg|Maastricht/i, "Netherlands"],
+  [/London|King's|Southampton|Nottingham|Edinburgh|Westminster|Sussex|Glasgow|Manchester|UCL|Oxford|Cambridge|Bristol|Lancaster|Newcastle|York|Sheffield|Dundee|Bath|Leeds|Birmingham|Warwick|Imperial|Royal College|Goldsmiths|Northumbria|Hull|Exeter|Kent|Loughborough|Swansea|Cardiff|Liverpool/i, "UK"],
+  [/Leuven|Ghent|Gent|Brussel|Antwerp|Li[eè]ge|Louvain|Hasselt/i, "Belgium"],
+  [/Paris|France|Toulouse|Bordeaux|Lyon|Sorbonne|Centrale|INSA|\bENS\b|normale|Inria|Grenoble|Lille|Rennes|Nantes|Strasbourg|Compi[eè]gne|Technologie/i, "France"],
+  [/ETH|EPFL|Z[uü]rich|Lausanne|Geneva|Basel|Bern/i, "Switzerland"],
+  [/Vienna|Wien|Graz|Linz|Salzburg|Austria/i, "Austria"],
+  [/Dublin|Trinity|Cork|Galway|Limerick|Ireland/i, "Ireland"],
+  [/Barcelona|Madrid|Pompeu|Valencia|Spain/i, "Spain"],
+  [/KTH|Stockholm|Uppsala|Lund|Chalmers|Gothenburg|Göteborg|Malmö|Ume[aå]|Link[oö]ping|Sweden/i, "Sweden"],
+  [/Aarhus|Copenhagen|Aalborg|DTU|Denmark|ITU/i, "Denmark"],
+  [/Aalto|Helsinki|Tampere|Oulu|Finland/i, "Finland"],
+  [/NTNU|Oslo|Bergen|Norway/i, "Norway"]
+];
+function supCountry(s) {
+  if (s.country) return s.country;
+  if (SCHOOL_COUNTRY[s.school_zh]) return SCHOOL_COUNTRY[s.school_zh];
+  var e = (s.school_en || "") + " " + (s.unit || "");
+  for (var i = 0; i < COUNTRY_RULES.length; i++) if (COUNTRY_RULES[i][0].test(e)) return COUNTRY_RULES[i][1];
+  return "Other";
+}
+(DATA.supervisors || []).forEach(function (s) { s._country = supCountry(s); });
+function supCard(s, i) {
+  var ed = s.email_draft || {};
+  return '<article class="x-card x-sup" tabindex="0" role="button" data-act="open" data-i="' + i + '" aria-label="' + esc(s.name) + '">'
+    + '<div class="x-row-head"><div class="x-school"><span class="x-school__zh">' + esc(s.name) + "</span>"
+    + '<span class="x-meta">' + (lang === "en" ? esc(s.school_en) : esc(s.school_zh || s.school_en)) + " · " + esc(lang === "zh" && s.country_zh ? s.country_zh : countryLabel(s._country)) + "</span></div>"
+    + '<div class="x-badges"><b>' + s.relevance + "/10</b>" + bar(s.relevance, 10) + "</div></div>"
+    + '<div class="x-badges" style="margin-top:8px">' + starBadge(s.in_user_csc_list) + cscBadge(s.csc_status) + vBadge(s.verified)
+    + (ed.body && ed.to ? '<span class="x-badge x-badge--ok">' + esc(L("套磁信就绪", "Email ready")) + "</span>" : "")
+    + (phdCscPrec(s) ? phdCscBadge() : "") + phdCountTag(s) + "</div>"
+    + (s.unit ? '<p class="x-meta" style="margin-top:8px">' + txt(s, "unit") + "</p>" : "")
+    + '<p class="x-sub">' + txt(s, "claim") + "</p>"
+    + ((s.matched_keywords || []).length ? '<div class="x-kw">' + s.matched_keywords.map(function (k) { return "<span>" + ftHtml(k) + "</span>"; }).join("") + "</div>" : "")
+    + "</article>";
+}
+function filteredSups() {
+  var q = state.supQ.trim().toLowerCase();
+  return (DATA.supervisors || []).map(function (s, i) { return [s, i]; }).filter(function (x) {
+    var s = x[0];
+    if (state.supCountry !== "all" && s._country !== state.supCountry) return false;
+    if (state.supCsc !== "all" && s.csc_status !== state.supCsc) return false;
+    if (s.relevance < state.supMin) return false;
+    if (state.supPhdCsc && !phdCscPrec(s)) return false;
+    if (q) {
+      var hay = [s.name, s.school_en, s.school_zh, s.unit, s.unit_zh, s.claim, s.claim_zh, s.title, s.title_zh, s._country, s.country_zh, COUNTRY_ZH[s._country], (s.matched_keywords || []).join(" ")].join(" ").toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }).sort(function (a, b) { return b[0].relevance - a[0].relevance || a[0].name.localeCompare(b[0].name); });
+}
+function supListHtml() {
+  var list = filteredSups(), all = (DATA.supervisors || []).length;
+  return '<p class="x-count">' + esc(L("显示 " + list.length + " / " + all + "（按相关度排序，点开看论证与套磁信）", "Showing " + list.length + " of " + all + " (by relevance; open one for the case and the email)")) + "</p>"
+    + (list.length ? '<div class="x-two">' + list.map(function (x) { return supCard(x[0], x[1]); }).join("") + "</div>" : '<p class="x-empty">' + esc(L("没有符合条件的导师。", "No supervisors match these filters.")) + "</p>");
+}
+function viewSupervisors() {
+  var S = DATA.supervisors || [];
+  var countries = uniq(S.map(function (s) { return s._country; }));
+  var h = '<div><h2 class="x-h2">' + esc(L("目标导师", "Target supervisors")) + "</h2></div>";
+  h += '<div class="x-controls"><input class="x-input" type="search" data-f="supQ" value="' + esc(state.supQ) + '" placeholder="' + esc(L("搜索姓名、学校、关键词", "Search name, school, keyword")) + '" aria-label="' + esc(L("搜索", "Search")) + '" /></div>';
+  h += '<div class="x-controls">'
+    + sel("supCountry", L("国家", "Country"), [["all", L("全部", "All")]].concat(countries.map(function (c) { return [c, countryLabel(c)]; })))
+    + sel("supCsc", "CSC", [["all", L("全部", "All")], ["active", L("CSC 开放", "CSC active")], ["paused_or_stopped", L("暂停/停办", "Paused / stopped")], ["not_found", L("未找到", "Not found")], ["unknown", L("未知", "Unknown")]])
+    + "<label>" + esc(L("最低相关度", "Min relevance")) + ' <input type="range" min="1" max="10" step="1" data-f="supMin" value="' + state.supMin + '" /> <b id="x-supmin">' + state.supMin + "</b></label>"
+    + toggle("supPhdCsc", L("有中国/CSC 学生先例", "Has Chinese/CSC precedent")) + "</div>";
+  h += '<div id="x-sup-list">' + supListHtml() + "</div>";
+  return h;
+}
+function arg(k, v, claim) {
+  if (!v) return "";
+  return '<div class="x-arg"><span class="x-arg__k">' + esc(k) + '</span><div class="x-arg__v' + (claim ? " is-claim" : "") + '">' + v + "</div></div>";
+}
+function paperHtml(p) {
+  if (typeof p === "string") return '<div class="x-paper">' + ftHtml(p) + "</div>";
+  var conn = tr(p, "link_to_user") || tr(p, "link_to_user_project");
+  var title = tr(p, "title");
+  return '<div class="x-paper"><div>' + (p.url ? link(p.url, ft(title) === null ? t("hidden") : title) : ftHtml(title)) + "</div>"
+    + '<div class="x-meta">' + esc([p.venue, p.year].filter(Boolean).join(" · ")) + "</div>"
+    + (conn ? '<div class="x-meta">↔ ' + ftHtml(conn) + "</div>" : "") + "</div>";
+}
+var COPY = [];
+function copyRow(label, text) {
+  COPY.push(text);
+  return '<div class="x-email__row"><div class="x-email__head"><span class="x-arg__k">' + esc(label) + '</span><button type="button" class="x-copy" data-act="copy" data-c="' + (COPY.length - 1) + '">' + esc(L("复制", "Copy")) + "</button></div>"
+    + '<pre class="x-pre">' + ftHtml(text) + "</pre></div>";
+}
+/* ---------- PhD students (shared detail section) ---------- */
+function phdStudents(s) { return ((s && s.phd_students) || {}).students || []; }
+function phdCount(s) { return phdStudents(s).length; }
+function phdCscPrec(s) { return phdStudents(s).some(function (st) { return st.chinese_or_csc === true; }); }
+function phdGroup(st) { return st.status === "current" ? "current" : st.status === "alumni" ? "alumni" : "unclear"; }
+function phdCountTag(s) {
+  var n = phdCount(s);
+  return n ? '<span class="x-phdn">' + esc(L("博士生 " + n, n + " PhD")) + "</span>" : "";
+}
+function phdCscBadge() { return '<span class="x-badge x-badge--ok">' + esc(L("有中国/CSC 学生先例", "Chinese/CSC precedent")) + "</span>"; }
+function phdRow(st) {
+  var yr = st.status === "alumni"
+    ? (st.graduation_year ? L(st.graduation_year + " 毕业", "Graduated " + st.graduation_year) : (st.start_year ? L(st.start_year + " 入学", "Started " + st.start_year) : ""))
+    : (st.start_year ? L(st.start_year + " 入学", "Started " + st.start_year) : (st.graduation_year ? L(st.graduation_year + " 毕业", "Graduated " + st.graduation_year) : ""));
+  var topic = lang === "zh"
+    ? (st.topic_zh || st.thesis_title || st.research_topic || st.thesis_title_or_topic)
+    : ft(st.thesis_title) || ft(st.research_topic) || ft(st.thesis_title_or_topic) || "";
+  var bg = ft(tr(st, "background")), now = ft(tr(st, "now"));
+  var meta = [];
+  if (bg) meta.push(L("背景：", "Background: ") + bg);
+  if (now) meta.push(L("去向：", "Now: ") + now);
+  var nm = ft(st.name);
+  if (!nm) nm = lang === "en" ? (String(st.name || "").replace(/[（(][^）)]*[\u4e00-\u9fff][^）)]*[）)]/g, "").trim() || "") : String(st.name || "");
+  if (lang === "en" && ZH.test(nm)) nm = "";
+  nm = nm || L("未具名", "Name not listed");
+  return "<li><div class=\"x-phd__name\">" + (st.url ? link(st.url, nm) : esc(nm))
+    + (yr ? '<span class="x-phd__yr">' + esc(yr) + "</span>" : "")
+    + (st.chinese_or_csc === true ? '<span class="x-badge x-badge--ok">' + esc(L("中国/CSC", "CN/CSC")) + "</span>" : "") + "</div>"
+    + (topic ? '<div class="x-phd__topic">' + esc(topic) + "</div>" : "")
+    + (meta.length ? '<div class="x-meta">' + esc(meta.join(" · ")) + "</div>" : "") + "</li>";
+}
+function phdGroupHtml(s, g, all) {
+  var list = phdStudents(s).filter(function (st) { return phdGroup(st) === g; });
+  if (!list.length) return "";
+  var label = { current: L("在读", "Current"), alumni: L("已毕业", "Alumni"), unclear: L("状态待定", "Status unclear") }[g];
+  var shown = all ? list : list.slice(0, 5);
+  var h = '<div class="x-phd__group" data-phdg="' + g + '"><p class="x-phd__gh">' + esc(label + " · " + list.length) + "</p>"
+    + '<ul class="x-plain x-phd__list">' + shown.map(phdRow).join("") + "</ul>";
+  if (!all && list.length > 5) h += '<button type="button" class="x-chipbtn x-phd__more" data-act="phdall" data-i="' + SUP_IDX[s.name] + '" data-g="' + g + '">' + esc(L("展开全部（" + list.length + "）", "Show all (" + list.length + ")")) + "</button>";
+  return h + "</div>";
+}
+function phdExpand(btn) {
+  var s = DATA.supervisors[Number(btn.getAttribute("data-i"))], grp = btn.closest(".x-phd__group");
+  if (!s || !grp) return;
+  grp.outerHTML = phdGroupHtml(s, btn.getAttribute("data-g"), true);
+}
+function phdHtml(s) {
+  var ps = s.phd_students;
+  if (!ps) return "";
+  var h = '<div class="x-phd">';
+  if (!ps.found || !phdStudents(s).length) {
+    h += '<p class="x-meta" style="margin:0">' + esc(L("未查到公开的博士生记录", "No public PhD student records found")) + "</p>";
+    var sr = ps.searched || [];
+    if (sr.length) h += '<details class="x-more"><summary>' + esc(L("已检索（" + sr.length + "）", "Searched (" + sr.length + ")")) + '</summary><div class="x-more__body">' + anyVal(sr) + "</div></details>";
+  } else {
+    var S = phdStudents(s);
+    var cur = S.filter(function (st) { return phdGroup(st) === "current"; }).length;
+    var alu = S.filter(function (st) { return phdGroup(st) === "alumni"; }).length;
+    var est = ft(tr(ps, "total_estimate"));
+    h += '<div class="x-phd__sum"><b>' + esc(L("在读 " + cur + " / 已毕业 " + alu, cur + " current / " + alu + " alumni")) + "</b>"
+      + (phdCscPrec(s) ? phdCscBadge() : "") + "</div>"
+      + (est ? '<p class="x-meta" style="margin:0">' + esc(L("估计：", "Estimate: ") + est) + "</p>" : "");
+  }
+  var an = [["student_pattern_zh", "学生课题共性"], ["design_background_ok_zh", "设计/非CS背景先例"], ["chinese_students_zh", "中国/CSC 学生"], ["implication_zh", "对你的意义"]]
+    .filter(function (a) { return ps[a[0]]; });
+  if (an.length) {
+    if (lang === "zh") h += '<dl class="x-phd__an">' + an.map(function (a) { return "<div><dt>" + esc(a[1]) + "</dt><dd>" + esc(ps[a[0]]) + "</dd></div>"; }).join("") + "</dl>";
+    else h += '<p class="x-meta" style="margin:0">' + esc("Analysis available in Chinese mode.") + "</p>";
+  }
+  if (ps.found) h += ["current", "alumni", "unclear"].map(function (g) { return phdGroupHtml(s, g, false); }).join("");
+  if ((ps.sources || []).length) h += '<div class="x-links" style="margin-top:0">' + srcLinks(ps.sources) + "</div>";
+  return h + "</div>";
+}
+/* shared supervisor detail: used by the drawer and by inline blocks in position / CSC cards */
+function supDetailHtml(s, hTag) {
+  var ed = s.email_draft || {};
+  hTag = hTag || "h3";
+  var h = '<div class="x-badges" style="margin-top:12px"><b>' + esc(L("相关度", "Relevance")) + " " + s.relevance + "/10</b>" + starBadge(s.in_user_csc_list) + cscBadge(s.csc_status) + vBadge(s.verified) + "</div>";
+  if (s.title || s.unit) h += '<p class="x-meta">' + ftHtml([tr(s, "title"), tr(s, "unit")].filter(Boolean).join(" · ")) + "</p>";
+  h += '<div class="x-links">' + link(s.homepage, L("主页", "Homepage")) + (s.email ? " " + link("mailto:" + s.email, s.email) : "") + "</div>";
+  h += '<div style="margin-top:12px">'
+    + arg(L("论点", "Claim"), txt(s, "claim"), true)
+    + arg(L("主页与课题证据", "Homepage and project evidence"), txt(s, "evidence_homepage"))
+    + arg(L("论文证据", "Paper evidence"), (tr(s, "evidence_papers") || []).map(paperHtml).join(""))
+    + arg(L("历届博士生", "PhD students"), phdHtml(s))
+    + arg(L("项目与经费", "Projects and funding"), txt(s, "evidence_projects_funding"))
+    + arg(L("与你的契合", "Fit to you"), txt(s, "fit_to_user"))
+    + arg(L("风险与反驳", "Risks and counterarguments"), txt(s, "counterargument_risk"))
+    + arg(L("套磁切入点", "Email hook"), txt(s, "email_hook"))
+    + arg(L("CSC 备注", "CSC note"), txt(s, "csc_note"))
+    + arg(L("来源", "Sources"), (s.sources || []).length ? '<ul class="x-ul">' + s.sources.map(function (u) { return "<li>" + link(u, u) + "</li>"; }).join("") + "</ul>" : "")
+    + "</div>";
+  h += "<" + hTag + ' class="x-h2">' + esc(L("套磁信", "Outreach email")) + "</" + hTag + ">";
+  if (ed.note_zh && lang === "zh") h += '<div class="x-card x-notice" style="margin-top:10px"><p class="x-sub" style="margin:0">' + ftHtml(ed.note_zh) + "</p></div>";
+  h += '<div class="x-email">'
+    + (ed.to ? copyRow(L("收件人", "To"), ed.to) : '<p class="x-empty">' + esc(L("未找到公开邮箱，请从主页确认收件人。", "No public email found; confirm the address on the homepage.")) + "</p>")
+    + '<div class="x-edraft" data-edraft="' + SUP_IDX[s.name] + '">' + edInner(ed) + "</div>"
+    + "</div>";
+  return h;
+}
+/* email draft: zh mode toggles 中文参考 / 英文原文; en mode shows English only */
+function edInner(ed) {
+  ed = ed || {};
+  var hasZh = lang === "zh" && !!(ed.subject_zh || ed.body_zh);
+  var useZh = hasZh && state.emailLang !== "en";
+  var h = "";
+  if (hasZh) {
+    h += '<div class="x-seg x-edseg" role="group" aria-label="套磁信语言">'
+      + '<button type="button" data-act="elang" data-v="zh" aria-pressed="' + useZh + '">中文参考</button>'
+      + '<button type="button" data-act="elang" data-v="en" aria-pressed="' + !useZh + '">英文原文</button></div>';
+    if (useZh) h += '<p class="x-meta" style="margin:0">中文译文仅供理解，发送请使用英文原文。</p>';
+  }
+  var subj = useZh ? ed.subject_zh : ed.subject, body = useZh ? ed.body_zh : ed.body;
+  return h + (subj ? emailRow(L("主题", "Subject"), subj) : "") + (body ? emailRow(L("正文", "Body"), body) : "");
+}
+function linkify(escaped) {
+  return String(escaped).replace(/https?:\/\/[^\s<>"\u3000-\u303f\uff00-\uffef\u4e00-\u9fff]+/g, function (u) {
+    var tail = "", m;
+    for (;;) {
+      if ((m = u.match(/(&quot;|&#39;|[.,;:!?*\]])$/))) { tail = m[0] + tail; u = u.slice(0, -m[0].length); continue; }
+      if (/\)$/.test(u) && (u.split("(").length < u.split(")").length)) { tail = ")" + tail; u = u.slice(0, -1); continue; }
+      break;
+    }
+    return '<a class="x-a" href="' + u + '" target="_blank" rel="noopener">' + u + "</a>" + tail;
+  });
+}
+function emailRow(label, text) {
+  COPY.push(text);
+  return '<div class="x-email__row"><div class="x-email__head"><span class="x-arg__k">' + esc(label) + '</span><button type="button" class="x-copy" data-act="copy" data-c="' + (COPY.length - 1) + '">' + esc(L("复制", "Copy")) + "</button></div>"
+    + '<pre class="x-pre">' + linkify(esc(text)) + "</pre></div>";
+}
+function setEmailLang(v) {
+  state.emailLang = v;
+  [].forEach.call(document.querySelectorAll("[data-edraft]"), function (el) {
+    var s = (DATA.supervisors || [])[Number(el.getAttribute("data-edraft"))];
+    if (s) el.innerHTML = edInner(s.email_draft);
+  });
+}
+
+/* ---------- competitiveness report: small markdown renderer ---------- */
+function mdInline(s) {
+  var ph = [];
+  function keep(h) { ph.push(h); return "\u0000" + (ph.length - 1) + "\u0000"; }
+  s = String(s).replace(/`([^`]+)`/g, function (m, c) { return keep("<code>" + esc(c) + "</code>"); });
+  s = s.replace(/\[([^\]]+)\]\(([^\s)]+(?:\([^\s)]*\)[^\s)]*)*)\)/g, function (m, tx, u) {
+    return keep('<a class="x-a" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(tx).replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>") + "</a>");
+  });
+  s = linkify(esc(s));
+  s = s.replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>");
+  return s.replace(/\u0000(\d+)\u0000/g, function (m, i) { return ph[Number(i)]; });
+}
+function mdCells(row) {
+  return row.trim().replace(/^\|/, "").replace(/\|\s*$/, "").split(/(?<!\\)\|/).map(function (c) { return c.trim().replace(/\\\|/g, "|"); });
+}
+function mdRender(md, pre, toc) {
+  var lines = String(md || "").replace(/\r/g, "").split("\n"), out = [], para = [], stack = [], hn = 0;
+  function flushP() { if (para.length) { out.push("<p>" + para.map(mdInline).join("<br>") + "</p>"); para = []; } }
+  function closeLists(to) { while (stack.length > to) { out.push("</li></" + stack.pop().tag + ">"); } }
+  var isSep = function (l) { return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l || ""); };
+  for (var i = 0; i < lines.length; i++) {
+    var ln = lines[i], m;
+    if (!ln.trim()) { flushP(); continue; }
+    if ((m = ln.match(/^(#{1,4})\s+(.*?)\s*#*\s*$/))) {
+      flushP(); closeLists(0);
+      var lv = m[1].length, id = pre + "-" + (++hn);
+      if (lv === 2) toc.push({ id: id, text: m[2].replace(/\*\*/g, "") });
+      out.push("<h" + (lv + 2) + ' id="' + id + '">' + mdInline(m[2]) + "</h" + (lv + 2) + ">");
+      continue;
+    }
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(ln)) { flushP(); closeLists(0); out.push("<hr>"); continue; }
+    if (/^\s*\|/.test(ln) && isSep(lines[i + 1])) {
+      flushP(); closeLists(0);
+      var head = mdCells(ln), rows = [];
+      i += 2;
+      while (i < lines.length && /^\s*\|/.test(lines[i])) { rows.push(mdCells(lines[i])); i++; }
+      i--;
+      out.push('<div class="x-md-tw" tabindex="0"><table><thead><tr>' + head.map(function (c) { return '<th scope="col">' + mdInline(c) + "</th>"; }).join("") + "</tr></thead><tbody>"
+        + rows.map(function (r) { return "<tr>" + head.map(function (_, j) { return "<td>" + mdInline(r[j] || "") + "</td>"; }).join("") + "</tr>"; }).join("")
+        + "</tbody></table></div>");
+      continue;
+    }
+    if ((m = ln.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/))) {
+      flushP();
+      var ind = m[1].replace(/\t/g, "    ").length, tag = /\d/.test(m[2]) ? "ol" : "ul";
+      while (stack.length && ind < stack[stack.length - 1].indent) closeLists(stack.length - 1);
+      var top = stack[stack.length - 1];
+      if (top && ind === top.indent && top.tag !== tag) { closeLists(stack.length - 1); top = stack[stack.length - 1]; }
+      if (top && ind === top.indent) out.push("</li><li>");
+      else {
+        var start = tag === "ol" && parseInt(m[2], 10) !== 1 ? ' start="' + parseInt(m[2], 10) + '"' : "";
+        out.push("<" + tag + start + "><li>");
+        stack.push({ indent: ind, tag: tag });
+      }
+      out.push(mdInline(m[3]));
+      continue;
+    }
+    if (stack.length && /^\s+\S/.test(ln)) { out.push("<br>" + mdInline(ln.trim())); continue; }
+    closeLists(0);
+    para.push(ln.trim());
+  }
+  flushP(); closeLists(0);
+  return out.join("");
+}
+var COMP = null;
+function compBuild() {
+  var C = window.PHD_COMP || {}, t1 = [], t2 = [];
+  var r = mdRender(C.rules_md, "md-r", t1), c = mdRender(C.cases_md, "md-c", t2);
+  COMP = { rules: r, cases: c, t1: t1, t2: t2 };
+}
+function viewComp() {
+  if (!COMP) compBuild();
+  var s1 = L("规则与门槛·综合评估", "Rules & thresholds · overall assessment"), s2 = L("相似背景成功案例", "Similar-background success cases");
+  var tocLinks = function (arr) { return arr.map(function (x) { return '<a href="#' + x.id + '" data-act="toc" data-id="' + x.id + '">' + esc(x.text) + "</a>"; }).join(""); };
+  var h = '<div><h2 class="x-h2">' + esc(L("竞争力评估", "Competitiveness")) + '</h2><p class="x-sub">'
+    + esc(L("申请人在 CSC 与欧洲带薪博士岗中的门槛、优劣势和相似背景案例。", "Thresholds, strengths and gaps, and cases with a similar background.")) + "</p></div>";
+  if (lang === "en") h += '<div class="x-card x-notice"><p class="x-sub" style="margin:0">Report available in Chinese only.</p></div>';
+  if (!window.PHD_COMP) return h + '<p class="x-empty">' + esc(L("未加载报告。", "Report not loaded.")) + "</p>";
+  h += '<div class="x-comp"><nav class="x-toc" id="x-toc" aria-label="' + esc(L("目录", "Contents")) + '">'
+    + '<p class="x-toc__g">' + esc(s1) + "</p>" + tocLinks(COMP.t1)
+    + '<p class="x-toc__g">' + esc(s2) + "</p>" + tocLinks(COMP.t2) + "</nav>"
+    + '<div class="x-comp__docs">'
+    + '<section class="x-card x-md-sec" id="comp-rules" lang="zh-CN"><h2>' + esc(s1) + '</h2><div class="x-md">' + COMP.rules + "</div></section>"
+    + '<section class="x-card x-md-sec" id="comp-cases" lang="zh-CN"><h2>' + esc(s2) + '</h2><div class="x-md">' + COMP.cases + "</div></section>"
+    + "</div></div>";
+  return h;
+}
+function tocSpy() {
+  var toc = document.getElementById("x-toc");
+  if (!toc || state.tab !== "comp") return;
+  var links = toc.querySelectorAll("a[data-id]"), lim = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--x-top-h")) || 110) + 90, cur = null;
+  [].forEach.call(links, function (a) {
+    var el = document.getElementById(a.getAttribute("data-id"));
+    if (el && el.getBoundingClientRect().top <= lim) cur = a;
+  });
+  if (!cur && links.length) cur = links[0];
+  [].forEach.call(links, function (a) { a.classList.toggle("is-active", a === cur); });
+  if (cur && window.matchMedia("(max-width: 900px)").matches) {
+    var l = cur.offsetLeft - toc.clientWidth / 2 + cur.clientWidth / 2;
+    if (Math.abs(toc.scrollLeft - l) > 40) toc.scrollLeft = l;
+  }
+}
+function setTopH() {
+  var top = document.querySelector(".x-top");
+  if (top) document.documentElement.style.setProperty("--x-top-h", top.offsetHeight + "px");
+}
+window.addEventListener("scroll", tocSpy, { passive: true });
+window.addEventListener("resize", function () { setTopH(); tocSpy(); });
+function openDrawer(i) {
+  var s = (DATA.supervisors || [])[i];
+  if (!s) return;
+  state.drawer = i;
+  var h = '<div class="x-drawer__bar"><div class="x-school"><span class="x-school__zh" id="x-drawer-title">' + esc(s.name) + "</span>"
+    + '<span class="x-meta">' + supSchool(s) + "</span></div>"
+    + '<button type="button" class="x-close" data-act="close" aria-label="' + esc(L("关闭", "Close")) + '">✕</button></div>';
+  h += supDetailHtml(s, "h3");
+  var panel = document.getElementById("x-drawer-panel");
+  panel.innerHTML = h;
+  panel.scrollTop = 0;
+  var d = document.getElementById("x-drawer");
+  d.classList.add("is-open");
+  d.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  var c = panel.querySelector(".x-close");
+  if (c) c.focus();
+}
+function closeDrawer() {
+  var d = document.getElementById("x-drawer");
+  d.classList.remove("is-open");
+  d.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  var i = state.drawer;
+  state.drawer = null;
+  var card = document.querySelector('.x-sup[data-i="' + i + '"]');
+  if (card) card.focus();
+}
+function copyText(text, btn) {
+  var ok = false;
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "-9999px"; ta.style.opacity = "0";
+  (btn.closest(".x-drawer__panel") || document.body).appendChild(ta);
+  ta.focus(); ta.select();
+  try { ta.setSelectionRange(0, text.length); } catch (e) {}
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  function done(success) {
+    btn.textContent = success ? L("已复制", "Copied") : L("复制失败，请手动选择", "Copy failed, select manually");
+    btn.classList.toggle("is-done", success);
+    setTimeout(function () { btn.textContent = L("复制", "Copy"); btn.classList.remove("is-done"); }, 1600);
+  }
+  if (ok) return done(true);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+  } else done(false);
+}
+
+/* ---------- channels ---------- */
+function viewChannels() {
+  var C = DATA.channels_checked || [];
+  return '<div><h2 class="x-h2">' + esc(L("已检查的渠道", "Channels checked")) + '</h2><p class="x-sub">'
+    + esc(L("每个渠道今天是否可达、产出如何。", "Whether each channel was reachable today and what it turned up.")) + "</p></div>"
+    + '<div class="x-card"><ul class="x-plain x-dl-list">' + C.map(function (c) {
+      var st = c.status || "", cls = /^reachable/i.test(st) ? "x-badge--ok" : /unreachable|blocked|failed/i.test(st) ? "x-badge--redline" : "x-badge--warn";
+      var word = /^reachable/i.test(st) ? L("可达", "Reachable") : /unreachable|blocked|failed/i.test(st) ? L("不可达", "Unreachable") : L("部分可达", "Partial");
+      return '<li><div><p class="x-title" style="margin-top:0">' + txt(c, "channel") + '</p><p class="x-meta">' + txt(c, "status") + '</p></div><div class="x-badges"><span class="x-badge ' + cls + '">' + esc(word) + "</span></div></li>";
+    }).join("") + "</ul></div>";
+}
+
+/* ---------- app ---------- */
+var TABS = ["overview", "positions", "csc", "supervisors", "channels", "comp"];
+var VIEWS = { overview: viewOverview, positions: viewPositions, csc: viewCSC, supervisors: viewSupervisors, channels: viewChannels, comp: viewComp };
+state.tab = TABS.indexOf((location.hash || "").slice(1)) >= 0 ? location.hash.slice(1) : "overview";
+state.drawer = null;
+function render() {
+  var root = document.documentElement;
+  root.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
+  document.title = t("brand");
+  document.querySelector(".x-seg").setAttribute("aria-label", L("语言", "Language"));
+  document.getElementById("x-tabs").setAttribute("aria-label", L("标签页", "Tabs"));
+  document.getElementById("x-drawer-panel").setAttribute("aria-label", L("导师详情", "Supervisor details"));
+  document.getElementById("x-brand").textContent = t("brand");
+  document.getElementById("x-updated").textContent = t("updated") + " " + (DATA.updated || "—");
+  document.getElementById("x-foot").textContent = t("foot");
+  [].forEach.call(document.querySelectorAll("[data-lang]"), function (b) {
+    var on = b.getAttribute("data-lang") === lang;
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    if (b.getAttribute("data-lang") === "zh") { b.textContent = lang === "en" ? "ZH" : "中文"; b.setAttribute("aria-label", L("中文", "Chinese")); }
+    else b.setAttribute("aria-label", L("英文", "English"));
+  });
+  document.getElementById("x-tabs").innerHTML = TABS.map(function (k) {
+    return '<a href="#' + k + '" data-tab="' + k + '"' + (k === state.tab ? ' aria-current="page"' : "") + ">" + esc(T.tabs[k][lang]) + "</a>";
+  }).join("");
+  COPY = [];
+  document.getElementById("app").innerHTML = VIEWS[state.tab]();
+  if (state.drawer != null) openDrawer(state.drawer);
+  setTopH();
+  tocSpy();
+}
+function setLang(l) { lang = l; render(); }
+[].forEach.call(document.querySelectorAll("[data-lang]"), function (b) {
+  b.onclick = function () { setLang(b.getAttribute("data-lang")); };
+});
+document.getElementById("x-tabs").addEventListener("click", function (e) {
+  var a = e.target.closest("[data-tab]");
+  if (!a) return;
+  e.preventDefault();
+  state.tab = a.getAttribute("data-tab");
+  try { history.replaceState(null, "", "#" + state.tab); } catch (err) {}
+  render();
+  window.scrollTo(0, 0);
+});
+var app = document.getElementById("app");
+app.addEventListener("click", function (e) {
+  var el = e.target.closest("[data-act]");
+  if (!el) return;
+  var act = el.getAttribute("data-act");
+  if (act === "set") { state[el.getAttribute("data-k")] = el.getAttribute("data-v"); render(); }
+  else if (act === "open") openDrawer(Number(el.getAttribute("data-i")));
+  else if (act === "cardx") setCard(el.getAttribute("data-card"), !state.openCards[el.getAttribute("data-card")]);
+  else if (act === "supx") {
+    var ck = el.getAttribute("data-card"), si = Number(el.getAttribute("data-i"));
+    setSup(ck, si, !state.openSups[ck + "-" + si]);
+  }
+  else if (act === "supchip") jumpSup(el.getAttribute("data-card"), Number(el.getAttribute("data-i")));
+  else if (act === "copy") copyText(COPY[Number(el.getAttribute("data-c"))] || "", el);
+  else if (act === "phdall") phdExpand(el);
+  else if (act === "elang") setEmailLang(el.getAttribute("data-v"));
+  else if (act === "toc") {
+    e.preventDefault();
+    var tg = document.getElementById(el.getAttribute("data-id"));
+    if (tg) { tg.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); tg.setAttribute("tabindex", "-1"); tg.focus({ preventScroll: true }); }
+  }
+});
+app.addEventListener("keydown", function (e) {
+  var el = e.target.closest('[data-act="open"]');
+  if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openDrawer(Number(el.getAttribute("data-i"))); }
+});
+function onField(e) {
+  var el = e.target, k = el.getAttribute && el.getAttribute("data-f");
+  if (!k) return;
+  if (el.type === "checkbox") state[k] = el.checked;
+  else if (el.type === "range") state[k] = Number(el.value);
+  else state[k] = el.value;
+  if (k === "supQ" || k === "supMin") {
+    if (k === "supMin") document.getElementById("x-supmin").textContent = state.supMin;
+    document.getElementById("x-sup-list").innerHTML = supListHtml();
+  } else if (e.type === "change") render();
+}
+app.addEventListener("input", onField);
+app.addEventListener("change", function (e) { if (e.target.type !== "search" && e.target.type !== "range") onField(e); });
+document.getElementById("x-drawer").addEventListener("click", function (e) {
+  var el = e.target.closest("[data-act]");
+  if (!el) return;
+  var act = el.getAttribute("data-act");
+  if (act === "close") closeDrawer();
+  else if (act === "phdall") phdExpand(el);
+  else if (act === "copy") copyText(COPY[Number(el.getAttribute("data-c"))] || "", el);
+  else if (act === "elang") setEmailLang(el.getAttribute("data-v"));
+});
+document.addEventListener("keydown", function (e) { if (e.key === "Escape" && state.drawer != null) closeDrawer(); });
+render();
+
+    </script>
+  </body>
+</html>
