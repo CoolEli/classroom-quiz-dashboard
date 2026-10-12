@@ -87,4 +87,6 @@ document.write('<script src="data/p084.js"><\/script>');
 document.write('<script src="data/p085.js"><\/script>');
 document.write('<script src="data/p086.js"><\/script>');
 document.write('<script src="data/p087.js"><\/script>');
+document.write('<script src="data/p088.js"><\/script>');
+document.write('<script src="data/p089.js"><\/script>');
 document.write('<script src="data/done.js"><\/script>');
